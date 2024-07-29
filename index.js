@@ -1,8 +1,8 @@
 import express from "express";
-import { songRouter } from "./router/songRouter.js";
+import { SongRouter } from "./router/songRouter.js";
 
 const app = express();
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT ?? 4142;
 
 app.listen(PORT, (err) => {
     console.log(
@@ -13,5 +13,5 @@ app.listen(PORT, (err) => {
     )
 });
 
-app.use('/api/songs', songRouter);
+app.use('/api/songs', SongRouter);
 
