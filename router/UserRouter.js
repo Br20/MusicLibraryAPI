@@ -6,7 +6,9 @@ UserRouter.get("/", UserController.getAll)
 
 UserRouter.get("/:id", UserController.getById)
 
-UserRouter.post("/", UserController.create)
+UserRouter.post("/register", UserController.register)
+
+UserRouter.post("/login", UserController.login)
 
 UserRouter.patch("/:id", UserController.update)
 

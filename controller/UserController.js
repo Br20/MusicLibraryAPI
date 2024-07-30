@@ -1,4 +1,7 @@
 import { User } from "../model/UserModel.js";
+import bcrypt from "bcrypt";
+import token from "../services/jwt.js"
+const saltRounds = 10;
 
 export class UserController{
     static getAll(request, response){
@@ -19,12 +22,42 @@ export class UserController{
         .catch(error => response.status(500).json({ success: false, message: error.message }))
     }
 
-    static create(request, response){
+    static register(request, response){
         const {username, email, password} = request.body;
-        const newUser = new User({username, email, password})
+        bcrypt.hash(password, saltRounds)
+        .then(encryptedPass => {
+            console.log(encryptedPass)
+            const newUser = new User({username, email, encryptedPass})
             newUser.save()
-            .then (data =>  response.status(201).json({ success: true, message: "User created successfully", data: data  }))
-            .catch (error => response.status(500).json({ success: false, message: error.message }))
+            .then (data =>  response.status(201).json({ success: true, message: "User registered successfully", data: data  }))
+        } )
+        .catch (error => response.status(500).json({ success: false, message: error.message }))
+    }
+
+
+    static login(request, response){
+        const {email, password} = request.body;
+        User.findOne({ email: email })
+        .then(user => {
+            if (!user){
+                return response.status(404).json({ success: false, message: "User not found" });
+            }
+            bcrypt.compare(password, user.password)
+            .then(match => {
+                if(match){
+                    const tk = token.generate(user)
+                    return response.status(200).json({ success: true, data: tk });
+                }else{
+                    return response.status(401).json({ success: false, message: "Incorrect email or password"})
+                }
+            })
+            .catch(() => {
+                return response.status(500).json({ success: false, message: "Login Rejected"})
+            }) 
+        })
+        .catch(() => {
+            return response.status(500).json({ success: false, message: "Login Rejected"})
+        }) 
     }
 
     static update(request, response){
