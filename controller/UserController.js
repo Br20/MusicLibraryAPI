@@ -70,18 +70,20 @@ export class UserController{
         const hasInvalidFields = !Object.keys(request.body).every((field) => allowedFields.includes(field))
         if (hasInvalidFields)
             response.status(400).json({ success: false, message: 'Invalid fields have been found'})
-        User.findByIdAndUpdate(id, request.body, {new: true, runValidators:true})
-        .then(data => {
-            if (data)
-                response.status(200).json({ success: true, message: `Updated user ${id}`, data: data  })
-            else
-                response.status(404).json({ success: false, message: `User ${id} not found `})
-        })
+        const { password } = request.body
+        bcrypt.hash(password, saltRounds)
+        .then(encryptedPass => {
+            const {username, email} = request.body
+            User.findByIdAndUpdate(id, {username, email, "password":encryptedPass}, {new: true, runValidators:true})
+            .then(data => {
+                if (data)
+                    response.status(200).json({ success: true, message: `Updated user ${id}`, data: data  })
+                else
+                    response.status(404).json({ success: false, message: `User ${id} not found `})
+            })
+            .catch (error => response.status(500).json({ success: false, message: error.message }))
+        } )
         .catch (error => response.status(500).json({ success: false, message: error.message }))
-    }
-
-    verifyReqBody(body){
-        
 
     }
 
